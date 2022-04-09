@@ -5,7 +5,7 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils.translation import gettext_lazy as _
 
 
-class UsersManager(BaseUserManager):
+class UserManager(BaseUserManager):
     use_in_migration = True
 
     def _create_user(self, email, password, **extra_fields):
@@ -33,15 +33,16 @@ class UsersManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 
-class Users(AbstractUser):
+class User(AbstractUser):
     username = None
     email = models.EmailField(
         _("email address"),
         blank=False,
         null=True,
         unique=True)
+    is_owner = models.BooleanField(default=False, null=False, blank=True)
 
-    objects = UsersManager()
+    objects = UserManager()
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
@@ -50,9 +51,9 @@ class Users(AbstractUser):
         return self.email
 
 
-class Owner(models.Model):
-    user = models.ForeignKey(
-        Users, on_delete=models.CASCADE, null=False, blank=False)
+class Shop(models.Model):
+    owner = models.ForeignKey(
+        User, on_delete=models.CASCADE, null=False, blank=False)
     shop_name = models.CharField(
         max_length=255,null=False, blank=False)
     shop_location = models.CharField(
