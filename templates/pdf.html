@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,900&family=Roboto:wght@100;300;400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <style>
+        *{
+            font-family: 'Lato', sans-serif;
+        }
+        table, th, th {
+            border: 1px solid black;
+            border-collapse: collapse;
+          }
+          th{
+              padding: 10px;
+          }
+          th{
+              padding-left: 10px;
+          }
+          .top_container{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+          .details > p{
+              margin: 3px;
+              font-weight: 600;
+          }
+          .top-flex{
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+          }
+          body{
+            padding: 0 50px;
+          }
+          .table-container{
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 100%;
+              margin-top: 50px;
+          }
+          table{
+              width: 70%;
+          }
+    </style>
+    <div class="top_container">
+        <h1>
+            Online Shop
+        </h1>
+    </div>
+    <div class="top-flex">
+        <div class="details">
+            <p>Client: Amin Bista</p>
+            <p>Address: Ratnanagar-12, Chitwan</p>
+            <p>Zip Code: 40022</p>
+        </div>
+        <div class="details">
+            <p>Shop: Dummy Shop</p>
+            <p>Shop Address: Ratnanagar-12, Chitwan</p>
+            <p>Order Date: 2020-05-13</p>
+        </div>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <th>S.N</th>
+                <th>Product Name</th>
+                <th>Product Quantity</th>
+                <th>Product Price</th>
+                <th>Total Product Cost</th>
+                <th>Delivery Charges</th>
+                <th>Total Cost</th>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <th>{{forloop.counter}}</th>
+                        <th>{{order.product.product.title}}</th>
+                        <th>{{order.quantity}}</th>
+                        <th>Rs {{order.product.product.price}}</th>
+                        <th>Rs {{order.product_cost}}</th>
+                        <th>Rs {{order.delivery_cost}}</th>
+                        <th>Rs {{order.total_cost}}</th>
+                    </tr>    
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+  </body>
+</html>

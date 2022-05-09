@@ -1,9 +1,9 @@
-from wsgiref.validate import validator
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
-from ..models import User, Shop
-
+from ..models import User, Shop, Address
+from rest_framework.permissions import DjangoModelPermissions
+from products.models import Product
 
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
@@ -49,13 +49,45 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 class OwnerCreateSerializer(serializers.ModelSerializer):
+    products = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Shop
         fields = (
+            'id',
             'shop_name',
             'shop_location',
+            'products',
         )
         extra_kwargs = {
             'shop_name': {'required':True}
         }
+    def get_products(self, obj):
+        qs = Product.objects.filter(shop__id=obj.id).values()
+        return qs
+
+class AddressSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Address
+        fields = (
+            'id',
+            'city',
+            'area',
+            'postal_code',
+            'zip_code',
+        )
+
+class UserPublicData(serializers.ModelSerializer):
+    addresses = serializers.SerializerMethodField(read_only=True)
+    class Meta:
+        model = User
+        fields = (
+            'first_name',
+            'last_name',
+            'email',
+            'addresses',
+        )
+    def get_addresses(self, obj):
+        data = Address.objects.filter(user__id=obj.id).values()
+        return data

@@ -6,6 +6,7 @@ def get_user(request):
             token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
         except:
             return 0
+            
         if len(token):
             data = CustomTokenVerifySerializer().validate({'token': token})
             return data.get('user_id')
