@@ -24,6 +24,7 @@ admin.site.register(Shop, ShopList)
 
 class AddressList(admin.ModelAdmin):
     list_display = (
+        'id',
         'user',
         'city',
         'area',

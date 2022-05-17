@@ -1,4 +1,4 @@
-from urllib import response
+
 from django.shortcuts import render
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
@@ -9,7 +9,8 @@ from products.models import Product
 from users.get_user import get_user
 from .helpers import generate_pdf
 from .serializers.product_serializer import ProductSerializer, ProductImageUploadSerializer
-from .serializers.cart_serializer import CartReadSerializer, CartSummarySerializer
+from .serializers.cart_serializer import CartReadSerializer, CartSummarySerializer, CartWriteSerializer
+from .serializers.order_serializer import OrderSerializer
 from users.models import Address, Shop, User
 from .models import CartProduct, ProductImage, Orders
 from django.http import FileResponse
@@ -20,6 +21,13 @@ class ListProduct(generics.ListAPIView):
     serializer_class = ProductSerializer
     permission_class = [permissions.AllowAny]
     queryset = Product.objects.all()
+
+
+class DetailProduct(generics.RetrieveAPIView):
+    serializer_class = ProductSerializer
+    permission_class = [permissions.AllowAny]
+    queryset = Product.objects.all()
+    lookup_field = 'slug'
 
 
 class CreateProducts(generics.CreateAPIView):
@@ -109,32 +117,60 @@ class AddToCart(generics.GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         user = User.objects.get(id=get_user(request))
+        print(user)
 
         product = Product.objects.filter(slug=kwargs.get('slug'))
-        if not product.exists():
+        print(request.data.get('quantity'))
+
+        if product.exists():
+            if product.first().quantity == 0:
+                return Response({"message": "Product Out Of Stock"}, status=300) 
             existing_product = CartProduct.objects.filter(
-                Q(user=user) & Q(slug=kwargs.get('slug')))
-            if not existing_product.exists():
-                return Response({"message": "no product"})
-            existing_product_ = existing_product.first()
-            existing_product_.quantity = F('quantity') + 1
-            existing_product_.save()
-            return Response({"message": f"quantity {existing_product.first().quantity}"})
+                Q(user=user) & Q(product__slug=kwargs.get('slug')))
+            print(existing_product)
+            if int(product.first().quantity) < int(request.data.get('quantity')):
+                return Response({"message": "not enough in stock"})
+            if existing_product.exists():
+                existing_product_ = existing_product.first()
+                if int(existing_product_.quantity) + int(request.data.get('quantity')) > int(product.first().quantity):
+                    return Response({'message': 'not enough in stock'})
+                existing_product_.quantity = F('quantity') + request.data.get('quantity')
+                existing_product_.save()
+                return Response({"message": f"total quantity {existing_product.first().quantity}", "quantity": f'{existing_product.first().quantity}'})
 
-        cart_product = CartProduct.objects.create(
-            slug=f'{product.first().slug}-{random.randint(1,9999)}',
-            product=product.first(),
-            user=User.objects.get(id=get_user(request)),
-            shop=product.first().shop,
-        )
-        return Response({"message": "OK"}, status=status.HTTP_200_OK)
 
+            cart_product = CartProduct.objects.create(
+                slug=f'crt-{product.first().slug}-{random.randint(1,9999)}',
+                product=product.first(),
+                user=User.objects.get(id=get_user(request)),
+                shop=product.first().shop,
+                quantity=request.data.get('quantity')
+            )
+
+            return Response({"message": "Product Successfully Added To Cart"}, status=status.HTTP_200_OK)
+
+class DeleteCartProduct(generics.DestroyAPIView):
+    permission_class = [permissions.IsAuthenticated]
+    lookup_field = 'slug'
+    def get_queryset(self):
+        user = User.objects.get(id=get_user(self.request))
+        qs = CartProduct.objects.filter(user=user)
+        return qs
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response({"message":"successfully deleted"},status=status.HTTP_204_NO_CONTENT)
 
 class ListCartProduct(generics.ListAPIView):
     permission_class = [permissions.IsAuthenticated]
     serializer_class = CartReadSerializer
     lookup_field = 'slug'
     queryset = CartProduct.objects.all()
+
+    def get_queryset(self):
+        qs = self.queryset.filter(user__id=get_user(self.request))
+        return qs
 
 
 class PreCheckoutSummary(generics.GenericAPIView):
@@ -178,21 +214,80 @@ class PreCheckoutSummary(generics.GenericAPIView):
 class Order(generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         cart_product_slug = kwargs.get('slug')
+        address = Address.objects.get(id=kwargs.get('id'))
         products = CartProduct.objects.filter(slug=cart_product_slug)
+        print(cart_product_slug)
         if products.exists():
             product = products.first()
+            home_product = Product.objects.get(slug=product.product.slug)
             order = Orders.objects.create(
-                product=product,
+                product=home_product,
                 quantity=product.quantity,
-                address=Address.objects.get(user=product.user),
+                address=address,
                 user=product.user,
                 shop=product.shop,
                 product_cost=product._total_price
             )
-            order.save()
+            print(product.product.quantity)
+            home_product.quantity = F('quantity') - order.quantity
+            home_product.save()
+            products.delete()
             return Response({'message': 'order created'})
 
 
+class ListOrder(generics.ListAPIView):
+    permission_class = [permissions.IsAuthenticated]
+    serializer_class = OrderSerializer
+
+    def get_queryset(self):
+        print('hello')
+        qs = Orders.objects.filter(user__id=get_user(self.request))
+        return qs
+
+
+class AddReview(generics.GenericAPIView):
+    pass
+
+
+class AddLike(generics.GenericAPIView):
+    pass
+
+class DecreaseQuantity(generics.GenericAPIView):
+    permission_class = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        cart_product = CartProduct.objects.filter(slug=kwargs.get('slug'))
+        if cart_product.exists():
+            cart_product_ = CartProduct.objects.get(slug=kwargs['slug'])
+            if cart_product_.quantity < int(request.data['quantity']):
+                return Response({"message": "cart product quantity is less than the given quantity"})
+            if cart_product_.quantity == int(request.data['quantity']):
+                return Response({"message": "cant remove all the quantity, must have atleast one or remove the product"})
+            cart_product_.quantity = F('quantity') - int(request.data.get('quantity'))
+            cart_product_.save()
+            return Response({"quantity": f'{cart_product.first().quantity}'})
+        return Response({"message": "Product not Found"}, status=404)
+
+class IncreaseQuantity(generics.GenericAPIView):
+    permission_class = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        cart_product = CartProduct.objects.filter(slug=kwargs.get('slug'))
+        product = Product.objects.get(slug=cart_product.first().product.slug)
+        if cart_product.exists():
+            cart_product_ = CartProduct.objects.get(slug=kwargs['slug'])
+            if int(cart_product_.quantity) + int(request.data['quantity']) > int(product.quantity):
+                return Response({"message": "not enough in stock"})
+            if int(product.quantity) < int(request.data.get('quantity')):
+                return Response({"message": "not enough in stock"})
+            cart_product_.quantity = F('quantity') + int(request.data.get('quantity'))
+            cart_product_.save()
+            return Response({"quantity": f'{cart_product.first().quantity}'})
+        return Response({"message": "Product not Found"}, status=404)
+
+
+
+# invoice test
 def test(request):
     orders = Orders.objects.all()
     filename, status = generate_pdf({'orders': orders})

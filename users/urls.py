@@ -21,7 +21,7 @@ app_name = "users-app"
 
 urlpatterns = [
     path('create/', CreateUser.as_view()),
-    path('detail/<int:pk>/', UserPublicDataView.as_view()),
+    path('detail/', UserPublicDataView.as_view()),
     path('owner/register/', RegisterAsOwner.as_view()),
     path('owner/revoke/', RevokeAsOwner.as_view()),
     path('shop/create/', CreateShop.as_view()),

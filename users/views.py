@@ -166,12 +166,14 @@ class DeleteAddress(generics.DestroyAPIView):
         self.perform_destroy(instance)
         return Response({"message":"successfully deleted"},status=status.HTTP_204_NO_CONTENT)
 
-class UserPublicDataView(generics.RetrieveAPIView):
+class UserPublicDataView(generics.GenericAPIView):
     serializer_class = UserPublicData
     permission_class = [permissions.IsAuthenticated]
-    queryset = User.objects.all()
 
-    def get_queryset(self):
+    def get(self, request, *args, **kwargs):
         user_id = get_user(self.request)
-        qs = self.queryset.filter(id=user_id)
-        return qs
+        
+        qs = User.objects.get(id=user_id)
+        data = self.get_serializer(qs).data
+        return Response(data, status=200)
+
