@@ -116,8 +116,13 @@ class AddToCart(generics.GenericAPIView):
     permission_class = [permissions.IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        user = User.objects.get(id=get_user(request))
-        print(user)
+        user_id = get_user(request)
+        if user_id == 0:
+            return Response({"message": "user not found"}, status=404)
+
+        user = User.objects.get(id=user_id)
+
+        
 
         product = Product.objects.filter(slug=kwargs.get('slug'))
         print(request.data.get('quantity'))

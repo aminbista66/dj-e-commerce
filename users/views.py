@@ -85,7 +85,7 @@ class DeleteShop(generics.DestroyAPIView):
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response({"message":"successfully deleted"},status=status.HTTP_204_NO_CONTENT)
-        
+
 class UpdateShop(generics.UpdateAPIView):
     permission_class = [permissions.IsAuthenticated]
     serializer_class = OwnerCreateSerializer
@@ -123,7 +123,7 @@ class AddAddress(generics.CreateAPIView):
 class ListAddress(generics.ListAPIView):
     permission_class = [permissions.IsAuthenticated]
     serializer_class = AddressSerializer
-    
+
     def get_queryset(self):
         user = User.objects.get(id=get_user(self.request))
         qs = Address.objects.filter(user=user)
@@ -132,13 +132,11 @@ class ListAddress(generics.ListAPIView):
 class UpdateAddress(generics.UpdateAPIView):
     permission_class = [permissions.IsAuthenticated]
     serializer_class = AddressSerializer
-    
+
     def get_queryset(self):
         user = User.objects.get(id=get_user(self.request))
         qs = Address.objects.filter(user=user)
         return qs
-   
-
 
 class AddressDetail(generics.RetrieveAPIView):
     permission_class = [permissions.IsAuthenticated]
@@ -172,8 +170,7 @@ class UserPublicDataView(generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         user_id = get_user(self.request)
-        
+
         qs = User.objects.get(id=user_id)
         data = self.get_serializer(qs).data
         return Response(data, status=200)
-
