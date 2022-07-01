@@ -291,8 +291,6 @@ class IncreaseQuantity(generics.GenericAPIView):
         return Response({"message": "Product not Found"}, status=404)
 
 
-
-# invoice test
 def test(request):
     orders = Orders.objects.all()
     filename, status = generate_pdf({'orders': orders})
