@@ -87,7 +87,9 @@ class UserPublicData(serializers.ModelSerializer):
             'last_name',
             'email',
             'addresses',
+            'is_owner'
         )
     def get_addresses(self, obj):
         data = Address.objects.filter(user__id=obj.id).values()
         return data
+

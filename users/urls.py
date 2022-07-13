@@ -13,7 +13,8 @@ from .views import (
     ListAddress,
     UpdateAddress,
     DeleteAddress,
-    UserPublicDataView
+    UserPublicDataView,
+    OrderHistory
 )
 
 
@@ -34,4 +35,5 @@ urlpatterns = [
     path('address/detail/<int:pk>/', AddressDetail.as_view()),
     path('address/list/', ListAddress.as_view()),
     path('address/delete/<int:pk>/', DeleteAddress.as_view()),
+    path('order/history/', OrderHistory.as_view())
 ]

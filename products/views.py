@@ -10,7 +10,7 @@ from users.get_user import get_user
 from .helpers import generate_pdf
 from .serializers.product_serializer import ProductSerializer, ProductImageUploadSerializer
 from .serializers.cart_serializer import CartReadSerializer, CartSummarySerializer, CartWriteSerializer
-from .serializers.order_serializer import OrderSerializer
+from users.serializers.order_serializer import OrderSerializer
 from users.models import Address, Shop, User
 from .models import CartProduct, ProductImage, Orders
 from django.http import FileResponse
@@ -290,7 +290,7 @@ class IncreaseQuantity(generics.GenericAPIView):
             return Response({"quantity": f'{cart_product.first().quantity}'})
         return Response({"message": "Product not Found"}, status=404)
 
-
+## TODO: make proper endpoint
 def test(request):
     orders = Orders.objects.all()
     filename, status = generate_pdf({'orders': orders})
@@ -299,3 +299,5 @@ def test(request):
     response.headers['Content-Disposition'] = f'attachment; filename={filename}.pdf'
     response.headers['Content-Type'] = 'application/pdf'
     return response
+
+

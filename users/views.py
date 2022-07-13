@@ -4,9 +4,12 @@ from rest_framework import generics, status
 from rest_framework import permissions, serializers
 from rest_framework.response import Response
 from rest_framework.mixins import UpdateModelMixin
+from products.views import Order
 
 from users.models import Address, Shop, User
+from  products.models import CartProduct, Orders
 from .serializers.user_serializers import UserSerializer, OwnerCreateSerializer, AddressSerializer, UserPublicData
+from .serializers.order_serializer import OrderSerializer
 from .get_user import get_user
 
 
@@ -174,3 +177,18 @@ class UserPublicDataView(generics.GenericAPIView):
         qs = User.objects.get(id=user_id)
         data = self.get_serializer(qs).data
         return Response(data, status=200)
+
+class OrderHistory(generics.GenericAPIView):
+    serializer_class = OrderSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user_id = get_user(request)
+
+        qs = Orders.objects.filter(user__id = user_id)
+        if qs.exists():
+            data = self.get_serializer(qs, many=True).data
+            return Response(data, status=200)
+        return Response({"message": "No Orders."}, status=404)
+
+

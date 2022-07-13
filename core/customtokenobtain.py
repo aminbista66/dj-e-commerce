@@ -10,6 +10,7 @@ class customTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         token['name'] = f"{user.first_name} {user.last_name}"
         token['user_id'] = user.id
+        token['is_owner'] = user.is_owner
 
         return token
 
