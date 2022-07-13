@@ -17,5 +17,7 @@ urlpatterns=[
     path('cart/decrease-quantity/<slug:slug>/', views.DecreaseQuantity.as_view()),
     path('cart/increase-quantity/<slug:slug>/', views.IncreaseQuantity.as_view()),
     path('cart/delete/<slug:slug>/', views.DeleteCartProduct.as_view()),
-    path('test/', views.test)
+    path('test/', views.test),
+
+    path('add-to-wishlist/<slug:slug>/', views.AddToWishlist),
 ]

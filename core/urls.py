@@ -15,7 +15,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('users/', include('users.urls')),
     path('products/', include('products.urls')),
-
+    path('seller-dashboard/', include('sellerdashboard.urls')),
 
     path('api-auth/', include('rest_framework.urls')),
     path('api/token/', customTokenObtainPairView.as_view(), name="token_obtain"),

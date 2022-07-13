@@ -15,7 +15,7 @@ from users.models import Address, Shop, User
 from .models import CartProduct, ProductImage, Orders
 from django.http import FileResponse
 from django.conf import settings
-
+from rest_framework.decorators import api_view
 
 class ListProduct(generics.ListAPIView):
     serializer_class = ProductSerializer
@@ -301,3 +301,23 @@ def test(request):
     return response
 
 
+@api_view(['GET', 'POST'])
+def AddToWishlist(request, slug):
+    user_id = get_user(request)
+    product_slug = slug
+    user = User.objects.filter(id=user_id)
+    if user.exists():
+        user = user.first()
+        qs = Product.objects.filter(slug=product_slug)
+        if not qs.exists():
+            return Response({"message": "Product doesnot exists."})
+        if qs.first().quantity != 0:
+            return Response({"message": "Invalid response."})
+        product = qs.first()
+        if product.likes.filter(id=user_id).exists():
+            product.likes.remove(user)
+            return Response({"message": "Removed from wishlist."})
+        product.likes.add(user)
+        return Response({"message": "Added to your wishlist"})
+    return Response({"message": "no user"})
+            
