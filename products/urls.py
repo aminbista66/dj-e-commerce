@@ -20,4 +20,5 @@ urlpatterns=[
     path('test/', views.test),
 
     path('add-to-wishlist/<slug:slug>/', views.AddToWishlist),
+    path('list-review/<slug:slug>/', views.ReviewView.as_view())
 ]

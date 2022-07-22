@@ -2,8 +2,9 @@ from dataclasses import field
 from rest_framework import serializers
 from rest_framework.response import Response
 from ..models import Product, ProductImage, Review
-from users.models import Shop
+from users.models import Shop, User
 from statistics import mean
+
 
 class ProductImageUploadSerializer(serializers.Serializer):
     images = serializers.ListField(child=serializers.FileField(
@@ -57,5 +58,21 @@ class ProductSerializer(serializers.ModelSerializer):
             return
         return sum(l) / len(l)
 
-    
+class UserPublicData(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            'first_name',
+            'last_name',
+        )
         
+class ReviewSerializer(serializers.ModelSerializer):
+    reviewby = UserPublicData(source="user", read_only=True)
+    class Meta:
+        model = Review
+        fields = (
+            'reviewby',
+            'feedback',
+            'stars'
+        )
+

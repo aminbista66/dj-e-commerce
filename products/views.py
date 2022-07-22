@@ -8,11 +8,11 @@ import random
 from products.models import Product
 from users.get_user import get_user
 from .helpers import generate_pdf
-from .serializers.product_serializer import ProductSerializer, ProductImageUploadSerializer
+from .serializers.product_serializer import ProductSerializer, ProductImageUploadSerializer, ReviewSerializer
 from .serializers.cart_serializer import CartReadSerializer, CartSummarySerializer, CartWriteSerializer
 from users.serializers.order_serializer import OrderSerializer
 from users.models import Address, Shop, User
-from .models import CartProduct, ProductImage, Orders
+from .models import CartProduct, ProductImage, Orders, Review
 from django.http import FileResponse
 from django.conf import settings
 from rest_framework.decorators import api_view
@@ -250,12 +250,20 @@ class ListOrder(generics.ListAPIView):
         return qs
 
 
-class AddReview(generics.GenericAPIView):
-    pass
+class ReviewView(generics.GenericAPIView):
+    serializer_class  = ReviewSerializer
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAuthenticatedOrReadOnly]
 
-
-class AddLike(generics.GenericAPIView):
-    pass
+    def post(self, request, *args, **kwargs):
+        pass
+    
+    def get(self, request, *args, **kwargs):
+        print('slug' in kwargs)
+        if 'slug' in kwargs:
+            qs = Review.objects.filter(product__slug = kwargs.get('slug'))
+            qs_data = self.get_serializer(qs, many=True).data
+            return Response(qs_data, status=200)
+        return Response({'message': 'Not enough Info.'}, status=403)
 
 class DecreaseQuantity(generics.GenericAPIView):
     permission_class = [permissions.IsAuthenticated]
@@ -320,4 +328,3 @@ def AddToWishlist(request, slug):
         product.likes.add(user)
         return Response({"message": "Added to your wishlist"})
     return Response({"message": "no user"})
-            
