@@ -144,7 +144,7 @@ class AddToCart(generics.GenericAPIView):
                 return Response({"message": f"total quantity {existing_product.first().quantity}", "quantity": f'{existing_product.first().quantity}'})
 
 
-            cart_product = CartProduct.objects.create(
+            CartProduct.objects.create(
                 slug=f'crt-{product.first().slug}-{random.randint(1,9999)}',
                 product=product.first(),
                 user=User.objects.get(id=get_user(request)),
